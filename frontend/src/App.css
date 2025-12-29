@@ -1,0 +1,140 @@
+.App {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.app-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.app-header h1 {
+  margin-bottom: 10px;
+  font-size: 2rem;
+}
+
+.connection-status {
+  font-size: 0.9rem;
+}
+
+.app-main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.bidding-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.current-bid-card,
+.bid-form-card {
+  border: 1px solid #ddd;
+  padding: 20px;
+}
+
+.current-bid-card h2,
+.bid-form-card h2 {
+  margin-bottom: 15px;
+  font-size: 1.3rem;
+}
+
+.highest-bid-amount {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 10px 0;
+  text-align: center;
+}
+
+.highest-bidder {
+  text-align: center;
+  color: #666;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  font-size: 1rem;
+}
+
+.error-message {
+  color: red;
+  margin-bottom: 10px;
+}
+
+.submit-button {
+  width: 100%;
+  padding: 10px;
+  background-color: #000;
+  color: white;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.submit-button:disabled {
+  background-color: #999;
+  cursor: not-allowed;
+}
+
+.bid-history {
+  border: 1px solid #ddd;
+  padding: 20px;
+}
+
+.bid-history h2 {
+  margin-bottom: 15px;
+  font-size: 1.3rem;
+}
+
+.empty-state {
+  text-align: center;
+  color: #666;
+  padding: 20px;
+}
+
+.bid-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.bid-item {
+  border-bottom: 1px solid #eee;
+  padding: 10px 0;
+}
+
+.bid-item:last-child {
+  border-bottom: none;
+}
+
+.bid-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.bidder-name {
+  font-weight: bold;
+}
+
+.bid-amount {
+  font-weight: bold;
+}
+
+.bid-timestamp {
+  font-size: 0.85rem;
+  color: #666;
+}
