@@ -1,4 +1,3 @@
-"""Redis Stream processor for broadcasting bid updates"""
 import redis
 import asyncio
 import json
@@ -7,16 +6,14 @@ from .connection_manager import ConnectionManager
 
 
 class StreamProcessor:
-    """Processes Redis Stream messages and broadcasts to WebSocket clients"""
     
     def __init__(self, redis_client: redis.Redis, connection_manager: ConnectionManager, stream_name: str):
         self.redis = redis_client
         self.manager = connection_manager
         self.stream_name = stream_name
-        self.last_id = "$"  # Start with new messages only
+        self.last_id = "$"
     
     async def process_messages(self):
-        """Background task to process Redis Stream messages"""
         print("Stream processor started, waiting for messages...", flush=True)
         
         while True:
@@ -51,8 +48,6 @@ class StreamProcessor:
                 await asyncio.sleep(1)
     
     def _parse_message(self, fields) -> Dict:
-        """Parse Redis stream message fields"""
-        # Handle both dict and list formats
         if isinstance(fields, list):
             field_dict = {}
             for i in range(0, len(fields), 2):

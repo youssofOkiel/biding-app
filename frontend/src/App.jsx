@@ -35,11 +35,21 @@ function App() {
             setBidHistory(data.data.history || []);
           } else if (data.type === 'new_bid' || data.type === 'bid_accepted') {
             const newBid = data.data;
-            setHighestBid(prev => !prev || parseFloat(newBid.amount) > parseFloat(prev.amount || 0) ? newBid : prev);
-            setBidHistory(prev => {
-              if (prev.some(b => b.bid_id === newBid.bid_id)) return prev;
-              return [newBid, ...prev].slice(0, 50);
+            
+            setHighestBid(prev => {
+              if (!prev) return newBid;
+              const newAmount = parseFloat(newBid.amount);
+              const prevAmount = parseFloat(prev.amount || 0);
+              return newAmount > prevAmount ? newBid : prev;
             });
+            
+            setBidHistory(prev => {
+              const exists = prev.some(b => b.bid_id === newBid.bid_id);
+              if (exists) return prev;
+              const updated = [newBid, ...prev];
+              return updated.slice(0, 50);
+            });
+            
             if (data.type === 'bid_accepted') {
               setBidAmount('');
               setError(null);

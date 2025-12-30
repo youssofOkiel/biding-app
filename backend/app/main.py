@@ -1,4 +1,3 @@
-"""FastAPI application main file"""
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -13,15 +12,12 @@ from services.connection_manager import ConnectionManager
 from services.stream_processor import StreamProcessor
 from services.config import REDIS_HOST, REDIS_PORT, STREAM_NAME
 
-
-# Initialize Redis connection
 redis_client = redis.Redis(
     host=REDIS_HOST,
     port=REDIS_PORT,
     decode_responses=True
 )
 
-# Initialize services
 bid_service = BidService(redis_client)
 connection_manager = ConnectionManager()
 stream_processor = StreamProcessor(redis_client, connection_manager, STREAM_NAME)
@@ -29,7 +25,6 @@ stream_processor = StreamProcessor(redis_client, connection_manager, STREAM_NAME
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan manager"""
     background_task = None
     
     try:
@@ -57,7 +52,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Bidding Application", lifespan=lifespan)
 
-# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -85,7 +79,6 @@ async def health_check():
 
 @app.get("/api/bids/highest")
 async def get_highest_bid():
-    """Get current highest bid"""
     bid = bid_service.get_highest_bid()
     if bid:
         return bid
@@ -94,17 +87,14 @@ async def get_highest_bid():
 
 @app.get("/api/bids/history")
 async def get_bid_history(limit: int = 50):
-    """Get bid history"""
     return {"history": bid_service.get_bid_history(limit)}
 
 
 @app.websocket("/ws/bid")
 async def websocket_endpoint(websocket: WebSocket):
-    """WebSocket endpoint for real-time bidding"""
     await connection_manager.connect(websocket)
     
     try:
-        # Send initial state
         highest_bid = bid_service.get_highest_bid()
         history = bid_service.get_bid_history(50)
         
@@ -116,7 +106,6 @@ async def websocket_endpoint(websocket: WebSocket):
             }
         }))
         
-        # Handle incoming messages
         while True:
             data = await websocket.receive_text()
             message = json.loads(data)
@@ -137,7 +126,6 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 async def _validate_and_process_bid(message: Dict, websocket: WebSocket) -> Optional[str]:
-    """Validate and process a bid submission"""
     bidder = message.get("bidder", "").strip()
     
     try:
@@ -145,7 +133,6 @@ async def _validate_and_process_bid(message: Dict, websocket: WebSocket) -> Opti
     except (ValueError, TypeError):
         return "Invalid bid amount"
     
-    # Validation
     if not bidder:
         return "Bidder name is required"
     
@@ -158,7 +145,6 @@ async def _validate_and_process_bid(message: Dict, websocket: WebSocket) -> Opti
     if amount <= current_amount:
         return f"Bid must be higher than current highest bid (${current_amount:.2f})"
     
-    # Create bid
     bid_data = {
         "bid_id": bid_service.generate_bid_id(),
         "bidder": bidder,
@@ -166,11 +152,15 @@ async def _validate_and_process_bid(message: Dict, websocket: WebSocket) -> Opti
         "timestamp": datetime.utcnow().isoformat()
     }
     
-    # Save to Redis
-    bid_service.save_bid(bid_data)
+    success = bid_service.save_bid_atomic(bid_data)
+    
+    if not success:
+        current_highest = bid_service.get_highest_bid()
+        current_amount = current_highest.get("amount", 0) if current_highest else 0
+        return f"Bid must be higher than current highest bid (${current_amount:.2f})"
+    
     bid_service.add_to_stream(STREAM_NAME, bid_data)
     
-    # Send confirmation
     await connection_manager.send_message(json.dumps({
         "type": "bid_accepted",
         "data": bid_data
